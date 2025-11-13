@@ -33,7 +33,7 @@ def pad_bits(bits:list,multiple:int):
 def encoder(bits:list)->list:
     """ Encode bits with [7,4] block encoding """
     encoded_bits = []
-    assert(len(bits)%4==0) # bits must be a multiple of 4 and 7
+    assert(len(bits)%4==0) # bits must be a multiple of 4
     pad_count = 28 - (len(bits) % 28) # Find out padding necessary to make len(bits) a multiple of 4
     if pad_count == 28: pad_count = 0 # Already a multiple of 4
     for i in range(pad_count):
