@@ -31,7 +31,7 @@ def pad_bits(bits:list,multiple:int):
 def encoder(bits:list)->list:
     """ TODO: add forward error detection block encoding to bits."""
     encoded_bits = []
-    assert(len(bits)%4==0 and len(bits)%7==0) # bits must be a multiple of 4 and 7
+    assert(len(bits)%4==0) # bits must be a multiple of 4 and 7
     pad_count = 28 - (len(bits) % 28) # Find out padding necessary to make len(bits) a multiple of 4
     if pad_count == 28: pad_count = 0 # Already a multiple of 4
     for i in range(pad_count):
@@ -142,18 +142,19 @@ def bits2text(bits):
     #print('Received Message:', rx_text)
     return rx_text
 
-def encode_noise_decode():
-    message_sent = "I really love dogs a whole lot!!!"
+def encode_noise_decode(message_sent,errors):
     bits = text2bits(message_sent)
-    padded_bits = pad_bits(bits,28)
+    padded_bits = pad_bits(bits,4)
     padding = len(padded_bits) - len(bits)
     encoded_bits = encoder(padded_bits)
-    noisy_bits = noise(encoded_bits,10)
+    noisy_bits = noise(encoded_bits,errors)
     decoded_bits = decode_bits(noisy_bits)
+    striped_bits = decoded_bits[0:len(decoded_bits)+padding]
+    message_received  = bits2text(striped_bits)
+    print("bit count:\t", str(len(bits)))
     print("padding:\t", str(padding))
-    message_received  = bits2text(decoded_bits)
-    print("message_sent:\t\t" + message_sent)
-    print("message_received:\t" + message_received)
+    print("message_sent:\t\t" + message_sent + "|||")
+    print("message_received:\t" + message_received + "|||")
 
 
 
@@ -166,7 +167,7 @@ def test_mult_matrices():
     print(p)
 
 def main():
-    encode_noise_decode()
+    encode_noise_decode("I really love dogs a whole lot!!!",23)
     
 
 if __name__ == '__main__':
