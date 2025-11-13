@@ -1,11 +1,12 @@
 import random as ran
-import numpy as np
-def noise(bits, errors):
+
+def noise(bits, flip_count):
+    """ Flip flip_count bits at random indexes. Do not flip the same bit twice. """
     ran_index = -1
     excludes = [ran_index]
-    if len(bits) < errors:
+    if len(bits) < flip_count:
         raise IndexError("Amount of errors is greater than the amount of bits.")
-    for error in range(errors):
+    for error in range(flip_count):
         while(ran_index in excludes):
             ran_index = ran.randint(0,len(bits)-1)
         excludes.append(ran_index)
@@ -18,6 +19,7 @@ def noise(bits, errors):
     return noisy_bits
             
 def pad_bits(bits:list,multiple:int):
+    """ Add padding to a vector of bits so that it's length is a multiple of multiple """
     pad_count = multiple - (len(bits) % multiple) # Find out padding necessary to make len(bits) a multiple of 4
     padded_bits = []
     for bit in bits:
@@ -29,7 +31,7 @@ def pad_bits(bits:list,multiple:int):
    
 
 def encoder(bits:list)->list:
-    """ TODO: add forward error detection block encoding to bits."""
+    """ Encode bits with [7,4] block encoding """
     encoded_bits = []
     assert(len(bits)%4==0) # bits must be a multiple of 4 and 7
     pad_count = 28 - (len(bits) % 28) # Find out padding necessary to make len(bits) a multiple of 4
@@ -46,6 +48,7 @@ def encoder(bits:list)->list:
     return encoded_bits
 
 def encode_block(block):
+    """ Encode 4 bits """
     g = generate()
     return multiply_matrices(block,g)
 
@@ -80,6 +83,7 @@ def generate():
             [0,0,0,1,   1,1,0]]
 
 def s_matrix():
+    """ Error correction matrix """
     return [[1,1,1],
             [0,1,1],
             [1,0,1],
@@ -89,6 +93,7 @@ def s_matrix():
             [0,0,1]]
 
 def decode_bits(bits):
+    """ Decode the [7,4] block encoded bits. """
     decoded_bits = []
     for i in range(0,len(bits),7):
         r = []
@@ -100,7 +105,7 @@ def decode_bits(bits):
     return decoded_bits
 
 def decode_block(block):
-    """ TODO: add forward error detection block decoding to bits."""
+    """ Decode a block of the [7,4] block encoded bits. """
     s = s_matrix()
     new_m = multiply_matrices(block,s)
     i = 0
@@ -115,9 +120,11 @@ def decode_block(block):
     return block[0][0:4]
 
 def flip_bit(bit):
+    """ See below """
     return 1 ^ bit
         
 def text2bits(message):
+    """ Convert text into bits. 7 bits per character. """
     return [int(bit) for char in message for bit in format(ord(char), '07b')]            
 
 def bits2text(bits):
@@ -143,19 +150,22 @@ def bits2text(bits):
     return rx_text
 
 def encode_noise_decode(message_sent,noise_flips):
+    """ Block encode a message then send it through a simulated noisy channel then decode the message. """
     bits = text2bits(message_sent)
-    padded_bits = pad_bits(bits,4)
+    padded_bits = pad_bits(bits,4) # Pad the message so that it can be encoded in 4 bit blocks
     padding = len(padded_bits) - len(bits)
     encoded_bits = encoder(padded_bits)
     noisy_bits = noise(encoded_bits,noise_flips)
     decoded_bits = decode_bits(noisy_bits)
-    striped_bits = decoded_bits[0:len(decoded_bits)+padding]
+    striped_bits = decoded_bits[0:len(decoded_bits)+padding] # Remove padding
     message_received  = bits2text(striped_bits)
+    # Count the number of errors in the received message
     errors = 0
     for i in range(len(bits)):
         if bits[i] != striped_bits[i]:
             errors+=1
 
+    # Print results
     print("bit count:\t", str(len(bits)))
     print("padding:\t", str(padding))
     print("message_sent:\t\t" + message_sent + "|||")
@@ -168,6 +178,7 @@ def encode_noise_decode(message_sent,noise_flips):
 
 
 def test_mult_matrices():
+    """ Test matrix multiplication """
     d = [[1,0,1,0]]
     g = generate()
     p = multiply_matrices(d,g)
@@ -176,7 +187,8 @@ def test_mult_matrices():
     print(p)
 
 def main():
-    encode_noise_decode("I really love dogs a whole lot!!!",50)
+    """ Run the program """
+    encode_noise_decode("I really love dogs a whole lot!!!",20)
     
 
 if __name__ == '__main__':
