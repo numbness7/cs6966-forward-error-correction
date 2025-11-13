@@ -144,20 +144,15 @@ def bits2text(bits):
 
 def encode_noise_decode():
     message_sent = "I really love dogs a whole lot!!!"
-    print("message_sent:\t\t" + message_sent)
-    #noisy_bytes = noise(message,6)
     bits = text2bits(message_sent)
     padded_bits = pad_bits(bits,28)
     padding = len(padded_bits) - len(bits)
     encoded_bits = encoder(padded_bits)
     noisy_bits = noise(encoded_bits,10)
     decoded_bits = decode_bits(noisy_bits)
-    #print("bits:\t" + str(bits))
-    #print("padding:\t", str(padding))
-    #print("d_bits:\t" + str(decoded_bits))
-    #print("e_bits:\t" + str(encoded_bits))
-    #print("n_bits:\t" + str(noisy_bits))
+    print("padding:\t", str(padding))
     message_received  = bits2text(decoded_bits)
+    print("message_sent:\t\t" + message_sent)
     print("message_received:\t" + message_received)
 
 
