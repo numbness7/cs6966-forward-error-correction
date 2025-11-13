@@ -142,19 +142,28 @@ def bits2text(bits):
     #print('Received Message:', rx_text)
     return rx_text
 
-def encode_noise_decode(message_sent,errors):
+def encode_noise_decode(message_sent,noise_flips):
     bits = text2bits(message_sent)
     padded_bits = pad_bits(bits,4)
     padding = len(padded_bits) - len(bits)
     encoded_bits = encoder(padded_bits)
-    noisy_bits = noise(encoded_bits,errors)
+    noisy_bits = noise(encoded_bits,noise_flips)
     decoded_bits = decode_bits(noisy_bits)
     striped_bits = decoded_bits[0:len(decoded_bits)+padding]
     message_received  = bits2text(striped_bits)
+    errors = 0
+    for i in range(len(bits)):
+        if bits[i] != striped_bits[i]:
+            errors+=1
+
     print("bit count:\t", str(len(bits)))
     print("padding:\t", str(padding))
     print("message_sent:\t\t" + message_sent + "|||")
     print("message_received:\t" + message_received + "|||")
+    print("Flips from noise:\t",noise_flips)
+    print("Errors after decoding:\t", errors)
+    print("Flips in noise per bit:\t", str(noise_flips/len(bits)))
+    print("Error per bit:\t", str(errors/len(bits)))
 
 
 
@@ -167,7 +176,7 @@ def test_mult_matrices():
     print(p)
 
 def main():
-    encode_noise_decode("I really love dogs a whole lot!!!",23)
+    encode_noise_decode("I really love dogs a whole lot!!!",50)
     
 
 if __name__ == '__main__':
