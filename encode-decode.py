@@ -17,9 +17,25 @@ def noise(bits, errors):
             noisy_bits.append(bits[i])
     return noisy_bits
             
-def encoder(bits):
+def pad_bits(bits:list,multiple:int):
+    pad_count = multiple - (len(bits) % multiple) # Find out padding necessary to make len(bits) a multiple of 4
+    padded_bits = []
+    for bit in bits:
+        padded_bits.append(bit)
+    if pad_count == multiple: pad_count = 0 # Already a multiple of 4
+    for i in range(pad_count):
+        padded_bits.append(0)
+    return padded_bits
+   
+
+def encoder(bits:list)->list:
     """ TODO: add forward error detection block encoding to bits."""
     encoded_bits = []
+    assert(len(bits)%4==0 and len(bits)%7==0) # bits must be a multiple of 4 and 7
+    pad_count = 28 - (len(bits) % 28) # Find out padding necessary to make len(bits) a multiple of 4
+    if pad_count == 28: pad_count = 0 # Already a multiple of 4
+    for i in range(pad_count):
+        bits.append(0)
     for i in range(0,len(bits),4):
         block = [[]]
         for j in range(4):
@@ -104,17 +120,47 @@ def flip_bit(bit):
 def text2bits(message):
     return [int(bit) for char in message for bit in format(ord(char), '07b')]            
 
+def bits2text(bits):
+    """
+    Convert a flat iterable of 0/1 to a 7-bit ASCII string (MSB first).
+    Pure-Python, no NumPy required.
+    """
+    bits = list(bits)
+    if len(bits) % 7 != 0:
+        raise ValueError("Length of bit stream must be a multiple of 7.")
+
+    out_chars = []
+    for i in range(0, len(bits), 7):
+        byte = 0
+        # MSB first: positions 0..6 map to weights 64..1
+        # converts the binary chunk into its integer value
+        for b in bits[i:i+7]:
+            byte = (byte << 1) | (1 if b else 0)
+        out_chars.append(chr(byte))
+    # Joins the list of characters into a single string
+    rx_text = ''.join(out_chars)
+    #print('Received Message:', rx_text)
+    return rx_text
+
 def encode_noise_decode():
-    message = "dogs"
+    message_sent = "I really love dogs a whole lot!!!"
+    print("message_sent:\t\t" + message_sent)
     #noisy_bytes = noise(message,6)
-    bits = text2bits(message)
-    encoded_bits = encoder(bits)
-    noisy_bits = noise(encoded_bits,6)
+    bits = text2bits(message_sent)
+    padded_bits = pad_bits(bits,28)
+    padding = len(padded_bits) - len(bits)
+    encoded_bits = encoder(padded_bits)
+    noisy_bits = noise(encoded_bits,10)
     decoded_bits = decode_bits(noisy_bits)
-    print("bits:\t" + str(bits))
-    print("d_bits:\t" + str(decoded_bits))
-    print("e_bits:\t" + str(encoded_bits))
-    print("n_bits:\t" + str(noisy_bits))
+    #print("bits:\t" + str(bits))
+    #print("padding:\t", str(padding))
+    #print("d_bits:\t" + str(decoded_bits))
+    #print("e_bits:\t" + str(encoded_bits))
+    #print("n_bits:\t" + str(noisy_bits))
+    message_received  = bits2text(decoded_bits)
+    print("message_received:\t" + message_received)
+
+
 
 def test_mult_matrices():
     d = [[1,0,1,0]]
